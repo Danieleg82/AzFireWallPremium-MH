@@ -1,5 +1,5 @@
 variable "resource_group_name" {
-  default       = "FirewallPremiumTest"
+  default       = "AzFirewallPremiumTest"
 }
 
 variable "resource_group_location" {

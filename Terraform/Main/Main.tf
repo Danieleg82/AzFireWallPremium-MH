@@ -28,15 +28,22 @@ resource "azurerm_virtual_network" "VNET" {
 resource "azurerm_subnet" "VMSubnet" {
   name                 = "Subnet1"
   resource_group_name  =  azurerm_resource_group.RG.name
-  virtual_network_name = "VNET1"
+  virtual_network_name = azurerm_virtual_network.VNET.name
   address_prefixes     = ["${var.VMSubnet_address_range}"]
 }
 
 resource "azurerm_subnet" "AzFWSubnet" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.RG.name
-  virtual_network_name = "VNET1"
+  virtual_network_name = azurerm_virtual_network.VNET.name
   address_prefixes     = ["${var.AzFWSubnet_address_range}"]
+}
+
+resource "azurerm_firewall_policy" "AzFWPolicy" {
+  name                = "AzFWPolicy"
+  resource_group_name = azurerm_resource_group.RG.name
+  location            = azurerm_resource_group.RG.location
+  sku                 = Premium
 }
 
 resource "azurerm_public_ip" "AzFWPIP" {
@@ -53,6 +60,7 @@ resource "azurerm_firewall" "AzFW" {
   resource_group_name = azurerm_resource_group.RG.name
   sku_name            = "AZFW_VNet"
   sku_tier            = "Premium"
+  firewall_policy_id =  azurerm_firewall_policy.AzFWPolicy.id
 
   ip_configuration {
     name                 = "configuration"
