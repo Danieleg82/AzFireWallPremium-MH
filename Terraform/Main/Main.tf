@@ -43,7 +43,7 @@ resource "azurerm_firewall_policy" "AzFWPolicy" {
   name                = "AzFWPolicy"
   resource_group_name = azurerm_resource_group.RG.name
   location            = azurerm_resource_group.RG.location
-  sku                 = Premium
+  sku                 = "Premium"
 }
 
 resource "azurerm_public_ip" "AzFWPIP" {
@@ -67,6 +67,25 @@ resource "azurerm_firewall" "AzFW" {
     subnet_id            = azurerm_subnet.AzFWSubnet.id
     public_ip_address_id = azurerm_public_ip.AzFWPIP.id
   }
+}
+
+resource "azurerm_route_table" "VMUDR" {
+  name                          = "VMUDR"
+  location                      = azurerm_resource_group.RG.location
+  resource_group_name           = azurerm_resource_group.RG.name
+  disable_bgp_route_propagation = false
+
+  route {
+    name           = "route1"
+    address_prefix = "0.0.0.0/0"
+    next_hop_type  = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.AzFW.ip_configuration[0].private_ip_address
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "UDRSubnetassociation" {
+  subnet_id      = azurerm_subnet.VMSubnet.id
+  route_table_id = azurerm_route_table.VMUDR.id
 }
 
 resource "azurerm_public_ip" "VMPublicIP" {
