@@ -18,3 +18,7 @@ variable "AzFWSubnet_address_range" {
   default = "10.0.2.0/24"
 }
 
+variable "BastionVNETRange" {
+  default = "10.0.3.0/24"
+}
+

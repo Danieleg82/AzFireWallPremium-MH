@@ -16,25 +16,20 @@ Enable IDPS but not TLSi
 (doc for IDPS testing: https://learn.microsoft.com/en-us/azure/firewall/premium-deploy)
 (doc for TLSi testing: https://techcommunity.microsoft.com/t5/azure-network-security-blog/building-a-poc-for-tls-inspection-in-azure-firewall/ba-p/3676723)
 
-CHALLENGE1:  TLS inspection and IDPS setup
+CHALLENGE1:  IDPS for unencrypted traffic
 
 TASK1:
-TLSi disabled - Emulate a malicious user agent call to remote website in HTTP (IDPS will mitigate)
-TLSi disabled - Emulate a malicious user agent call to remote website in HTTPs (IDPS will mot be able to mitigate)
+Create FW rules to allow outbound traffic
 
 TASK2:
-Enable TLS Inspection in Policy (KV, MI, Cert, etc...)
+Enable IDPS inspection
 
 TASK3:
-IMPORT THE CERT ON VM
-
-TASK4:
-Update Apprule in the policy for TLS inspection enabled
-
-TASK5:
-TLSi enabled - Emulate a malicious user agent call to remote website in HTTPs (IDPS will mitigate)
+Connect to VM and test HTTP external website with browser (Success)
+CURL the HTTP website with malicious user-agent (IDPS will block)
+CURL HTTPS website with malicious user-agent (IDP will NOT block)
 
 ================
 
-CHALLENGE1:  Customize IDPS
+CHALLENGE2
 

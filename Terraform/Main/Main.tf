@@ -115,7 +115,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   location            = azurerm_resource_group.RG.location
   size                = "Standard_B2s"
   admin_username      = "adminuser"
-  admin_password      = "Danny_lab_82"
+  admin_password      = "AzFWPa$$w0rd"
   network_interface_ids = [
     azurerm_network_interface.VMNic.id,
   ]
@@ -130,5 +130,34 @@ resource "azurerm_windows_virtual_machine" "example" {
     offer     = "WindowsServer"
     sku       = "2016-Datacenter"
     version   = "latest"
+  }
+}
+
+#Creating Bastion to access VM
+
+resource "azurerm_subnet" "BastionSubnet" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.RG.name
+  virtual_network_name = azurerm_virtual_network.VNET.name
+  address_prefixes     = ["${var.BastionVNETRange}"]
+}
+
+resource "azurerm_public_ip" "BastionVIP" {
+  name                = "BastionVIP"
+  location            = azurerm_resource_group.RG.location
+  resource_group_name = azurerm_resource_group.RG.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_bastion_host" "BastionHost" {
+  name                = "BastionHost"
+  location            = azurerm_resource_group.RG.location
+  resource_group_name = azurerm_resource_group.RG.name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.BastionSubnet.id
+    public_ip_address_id = azurerm_public_ip.BastionVIP.id
   }
 }
