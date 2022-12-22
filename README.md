@@ -81,29 +81,72 @@ Password: "AzFWPa$$w0rd"
 
 You can use the deployed Bastion host for accessing privately.
 
-From your VM's browser, now try to connect to the following site:
+From your VM, now try to connect to the following site in plain HTTP:
 
-http://info.cern.ch
+curl -I "http://www.bing.com"
 
 Are you able to access it?
 
-Let's now repeat the test using CURL web-client-
-
-Open a command prompt on your VM and type:
-
-curl http://info.cern.ch
-
-What's the result?
-
 Let's now emulate an attempt of connection to our HTTP website using a malicious user-agent included in the GET request we send out to the destination server:
 
-curl -A "HaxerMen" http://info.cern.ch
+curl -I -A "HaxerMen" "http://www.bing.com"
 
-What is the result of the connection now?
+What is the output now?
 Is that what you would expect?
 
-Finally, repeat the test with an HTTPS website:
+Finally, repeat the test with the HTTPS version of same website:
 
-curl -A "HaxerMen" https://www.bing.com 
+With standard User-agents:
+curl -I "https://www.bing.com"
+
+...and with malicious one:
+curl -I -A "HaxerMen" "https://www.bing.com"
 
 Did you expect such result?
+
+## TASK4
+
+We can now review the Azure Firewall logs to show find out the requests blocked by IDS.
+
+Wait for some minutes after having performed the above tests, then run a query on "Azure Firewall Log" logs and review the filtered requests:
+
+=ReviewAzFWLogData1=
+
+You can include the following line in the relevant Kusto query to parse just DENIED requests and narrow down the research to last 30 minutes:
+
+=ReviewAzFWLogData2=
+
+Note the IDS Signature which is currently blocking the request and the reason for blocking:
+
+=ReviewAzFWLogData3=
+
+## TASK5
+
+We can now play with the functionalities of IDPS customization and decide to temporarily disable the IDPS signature triggered with our connectivity tests.
+
+From the AzFW firewall policy configuration page, select and edit the rule 2032081 (USER_AGENTS Suspicious User-Agent (HaxerMen))
+
+=CustomizeIDP1=
+
+Let's configure the rule in simple ALERT mode and APPLY:
+
+=customizeIDP2=
+
+Let's connect back to our VM and test again the connectivity to a plain HTTP website using malicious agent:
+
+curl -I -A "HaxerMen" "http://www.bing.com"
+
+=TestIDPcustom1=
+
+The Firewall is no longer dropping the request, but you will still be able to see an ALERT in FW logs related with such request.
+
+# CHALLENGE 2: TLS Inspection and IDPS on encrypted traffic
+
+# Task1
+
+In this second challenge we'll proceed enabling TLS inspection on our Azure Firewall, using a test self-signed CA certificate.
+
+In production deployments you will be using internal intermediate CA certificates provided through your internal PKI infrastructure, 
+but for the purpose of this microHack the self-signed certificate is the quickest and simples approach to perform the tests.
+
+

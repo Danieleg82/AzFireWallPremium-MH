@@ -88,14 +88,6 @@ resource "azurerm_subnet_route_table_association" "UDRSubnetassociation" {
   route_table_id = azurerm_route_table.VMUDR.id
 }
 
-resource "azurerm_public_ip" "VMPublicIP" {
-  name                = "VMPIP"
-  resource_group_name = azurerm_resource_group.RG.name
-  location            = azurerm_resource_group.RG.location
-  allocation_method   = "Static"
-
-}
-
 resource "azurerm_network_interface" "VMNic" {
   name                = "VMNIC"
   location            = azurerm_resource_group.RG.location
@@ -105,11 +97,10 @@ resource "azurerm_network_interface" "VMNic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.VMSubnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.VMPublicIP.id
   }
 }
 
-resource "azurerm_windows_virtual_machine" "example" {
+resource "azurerm_windows_virtual_machine" "VM1" {
   name                = "VM1"
   resource_group_name = azurerm_resource_group.RG.name
   location            = azurerm_resource_group.RG.location
@@ -125,10 +116,10 @@ resource "azurerm_windows_virtual_machine" "example" {
     storage_account_type = "Standard_LRS"
   }
 
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
+ source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 }

@@ -29,7 +29,15 @@ Connect to VM and test HTTP external website with browser (Success)
 CURL the HTTP website with malicious user-agent (IDPS will block)
 CURL HTTPS website with malicious user-agent (IDP will NOT block)
 
+TASK4
+Review Diagnostic logs
+
 ================
 
-CHALLENGE2
+CHALLENGE2: TLS Inspection and IDPS on encrypted traffic
 
+Task1: 
+Enable TLS Inspection
+
+Task2:
+Revert the useragent IDS signature to DENY and test from VM
