@@ -40,4 +40,23 @@ Task1:
 Enable TLS Inspection
 
 Task2:
+Import CER on VM and trust it
+
+Task3:
 Revert the useragent IDS signature to DENY and test from VM
+
+Task4:
+Test TLS inspection with encrypted traffic
+
+================
+
+CHALLENGE3: Web Categories
+
+Task1:
+Create a block rule for gambling websites
+
+Task2:
+Test the rule
+
+Task3:
+Check the block in logs
