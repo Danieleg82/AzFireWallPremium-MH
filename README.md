@@ -272,7 +272,7 @@ and finally
 
 Are we obtaining the expected result here?
 
-# CHALLENGE 3: Block specific Web Categories
+# CHALLENGE 3 (Optional): Block specific Web Categories
 
 ## Task 1
 
@@ -350,3 +350,98 @@ Let's proceed accessing Logs tables from our AzFW and let's run a query for Appl
 Note the presence of matches for the requests we generated from VM1:
 
 =CheckapplruleLogsforGambling2=
+
+# CHALLENGE 4: Application Gateway & Azure Firewall chain with TLS inspection
+
+In this final challenge we will test a very useful and common scenario: the chaining between Azure Firewall and Application Gateway for the protection of Internet-inbound encrypted traffic.
+
+As we know, today Azure Firewall cannot implement IDPS-based protection of encrypted traffic for inbound scenarios, this is because TLS-inspection cannot work when dealing with Firewall's NAT rules.
+
+To make protection of such traffic possible, we can leverage the design proposed in this article:
+
+https://learn.microsoft.com/en-us/azure/architecture/example-scenario/gateway/firewall-application-gateway
+
+[Section: **"Application Gateway before Firewall"**]
+
+=AppGWandFWchain1=
+
+With a similar scenario, the exposed web application can leverage protection from 2 sources:
+
+1)Application Gateway's WAF (L7 protection)
+and/or
+2)Azure Firewall's IDPS
+
+All the benefits of a similar architecture are well described in the above article, and as well in the following:
+
+https://learn.microsoft.com/en-us/azure/architecture/example-scenario/gateway/application-gateway-before-azure-firewall
+
+As first step let's proceed creating our Application Gateway:
+
+
+XXXXX terraform steps XXXXXXX
+
+After the deployment is completed, we will have the following situation:
+
+-A WAF_V2 Application Gateway is deployed in its own /24 dedicated subnet, in the same VNET as backend VM1
+-UDRs on AppGW and backend subnets will already be in place to drive the traffic through Firewall.
+-The Application Gateway will be initially preconfigured with a backend pool (configured with the private IP of VM1), a dummy HTTP listener (initially configured on port 80/HTTP), and a custom probe
+-The HOST name of the application we will expose is "MyprotectedApp.AzFWMH.net". This application will run on the same VM1 we used as client for previous challenges
+
+There are now some operations to be done on to proceed further:
+
+1)We need to create a new self-signed certificate to be associated to the Application Gateway's listener and to the Apache-based website we will configure on VM1
+2)We need to make sure that Application Gateway can trust the self-signed CA certificate used by Azure Firewall: to do this, we will add it as TrustedRootCert in the Application Gateway settings
+3)We need a new Firewall rule with TLSi + IDPS enabled to allow traffic from Application Gateway to backend VM
+
+## Task 1
+
+Let's start by creating a new certificate to be associated to our published website.
+
+From your PC, start a Windows Powershell session as administrator, and run the following:
+
+New-SelfSignedCertificate `
+  -certstorelocation cert:\localmachine\my `
+  -dnsname MyprotectedApp.AzFWMH.net
+
+Take note of the certificate's thumbprint in output:
+
+=CreateNewCert1=
+
+Proceed with the following to export such certificate in PFX format in the path you prefer:
+
+[Note: replace "CertThumbprint" with the thumbprint value you got from previous step.]
+
+$pwd = ConvertTo-SecureString -String certpwd -Force -AsPlainText
+Export-PfxCertificate -cert cert:\localMachine\my\<CertThumbprint> -FilePath c:\appgwcert.pfx -Password $pwd
+
+A PFW file "appgwcert.pfx" is now available for you to be associated with the Application Gateway's listener, and to be imported on VM1
+
+## Task 2
+
+It's now time to proceed mapping the PFX certificate we just created to the listener of our Application Gateway, and at the same time configuring the Azure Firewall's certificate as TrustedRootCertificate in the properties of the HTTPsetting we will use to expose our website in Application Gateway.
+
+UPLOAD THE LISTENER CERTIFICATE TO APPGW:
+
+  az network application-gateway ssl-cert create -g azfirewallpremiumtest --gateway-name AppGW -n MySSLCert --cert-file C:\appgwcert.pfx --cert-password certpwd
+
+CREATE A NEW HTTPS LISTENER:
+
+az network application-gateway frontend-port create -g azfirewallpremiumtest --gateway-name AppGW -n HTTPSport --port 443
+
+az network application-gateway listener create -g azfirewallpremiumtest --gateway-name AppGW --frontend-port HTTPSport -n HTTPSListener --frontend-ip my-gateway-frontend-ip-configuration --ssl-cert MySSLCert 
+
+CONFIGURE A ROUTING RULE:
+
+az network application-gateway rule create -g azfirewallpremiumtest --gateway-name AppGW -n HTTPSrule --http-listener HTTPSListener --rule-type Basic --address-pool BackendPool1 --http-settings HTTPSsetting --priority 10005
+	
+It's now time to configure the Azure Firewall certificate used for TLS-inspection as TrustedRoot certificate on our Application Gateway.
+
+Let's locate on our PC the CA certificate we generated from Azure Firewall in Challenge2/Task2, and rename it as .CER
+
+Let's upload it and configure it on Application Gateway and update the relevant HTTPsetting: 
+
+[Replace <PathOfAzFWCert.CER> with the local path of the Azure Firewall .CER certificate on your PC]
+
+az network application-gateway root-cert create --cert-file <PathOfAzFWCert.CER> --gateway-name AppGW --name AzFWCert --resource-group azfirewallpremiumtest
+
+az network application-gateway http-settings update --gateway-name AppGW --name HTTPSsetting --resource-group azfirewallpremiumtest --root-certs AzFWCert --host-name MyprotectedApp.AzFWMH.net 

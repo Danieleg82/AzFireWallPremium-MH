@@ -50,7 +50,7 @@ Test TLS inspection with encrypted traffic
 
 ================
 
-CHALLENGE3: Web Categories
+CHALLENGE3 (Optional): Web Categories
 
 Task1:
 Create a block rule for gambling websites
@@ -60,3 +60,30 @@ Test the rule
 
 Task3:
 Check the block in logs
+
+================
+
+CHALLENGE4: Application Gateway & Azure Firewall chain with TLS inspection
+
+Task1:
+Deploy AppGW via terraform
+Create a public cert from a new selfsigned CA to be associated to AppGW listener
+
+Task2:
+Associate the cert to the listener
+Associate the selfsigned FW CA cert to Trusted Root certs in AppGW
+
+Task3:
+Configure backend Apache + certificate
+
+Task4:
+Create FW network rule witl TLSi enabled for traffic from AppGW to backend
+
+Task5:
+Check backend health status --> it's supposed to be unhealthy because the IDPS is supposed to block.
+This happens because the probe requests have a HOST HTTP header that the FW doesn't resolve with the backend IP.
+To solve this problem, we create a private zone
+
+Task6:
+Probe should now be ok.
+We can test external connectivity (map host name in HOSTS file etc)
