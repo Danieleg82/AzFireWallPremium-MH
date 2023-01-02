@@ -22,3 +22,7 @@ variable "BastionVNETRange" {
   default = "10.0.3.0/24"
 }
 
+variable "AppGWSubnetRange" {
+  default = "10.0.4.0/24"
+}
+
