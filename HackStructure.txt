@@ -74,7 +74,7 @@ Associate the cert to the listener
 Associate the selfsigned FW CA cert to Trusted Root certs in AppGW
 
 Task3:
-Configure backend Apache + certificate
+Configure backend IIS + certificate
 
 Task4:
 Create FW network rule witl TLSi enabled for traffic from AppGW to backend
