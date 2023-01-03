@@ -23,9 +23,11 @@ data "azurerm_virtual_network" "VNET" {
 }
 
 data "azurerm_firewall" "AzFW" {
-name                = "AzFW"
-resource_group_name = data.azurerm_resource_group.RG.name
+  name                = "AzFW"
+  resource_group_name = data.azurerm_resource_group.RG.name
 }
+
+#APPGW:
 
 resource "azurerm_subnet" "AppGWSubnet" {
   name                 = "AppGWSubnet"
@@ -70,7 +72,7 @@ resource "azurerm_application_gateway" "AppGW" {
 
   backend_address_pool {
     name = "BackendPool1"
-    ip_addresses = ["10.0.1.5"]
+    fqdns = ["example.com"]
   }
 
   probe {
@@ -80,7 +82,7 @@ resource "azurerm_application_gateway" "AppGW" {
     interval = 2
     timeout = 5
     unhealthy_threshold = 2
-    host = "MyprotectedApp.AzFWMH.net"
+    pick_host_name_from_backend_http_settings = true
 
   }
 
@@ -91,6 +93,7 @@ resource "azurerm_application_gateway" "AppGW" {
     port                  = 443
     protocol              = "Https"
     request_timeout       = 60
+    pick_host_name_from_backend_address = true
   }
 
   http_listener {
@@ -120,13 +123,6 @@ resource "azurerm_route_table" "APPGWUDR" {
   location                      = data.azurerm_resource_group.RG.location
   resource_group_name           = data.azurerm_resource_group.RG.name
   disable_bgp_route_propagation = false
-
-  route {
-    name           = "route1"
-    address_prefix = "10.0.1.0/24"
-    next_hop_type  = "VirtualAppliance"
-    next_hop_in_ip_address = data.azurerm_firewall.AzFW.ip_configuration[0].private_ip_address
-  }  
 }
 
 resource "azurerm_subnet_route_table_association" "APPGWUDRSubnetassociation" {
