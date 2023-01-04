@@ -99,7 +99,7 @@ resource "azurerm_application_gateway" "AppGW" {
   http_listener {
     name                           = "Listener1"
     frontend_ip_configuration_name = "my-gateway-frontend-ip-configuration"
-    frontend_port_name             = "HTTPSport"
+    frontend_port_name             = "HTTPport"
     protocol                       = "Http"
   }
 
