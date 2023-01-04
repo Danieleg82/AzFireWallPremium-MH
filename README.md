@@ -380,7 +380,7 @@ we will - instead - protect an external existing public website.
 
 This choice is due to the fact that Azure Firewall will not trust any self-signed certificate from backend web servers, nor certificates signed with internal CAs, but only and exclusively certificates signed by well-known CAs.
 
-The external website of our choise will "emulate" a web-server hosted in our VNET --> from the point of view of WAF + AzFW IDPS protection this won't make any significant difference.
+The external website of our choice will "emulate" a web-server hosted in our VNET --> from the point of view of WAF + AzFW IDPS protection this won't make any significant difference.
 
 As first step let's proceed creating our Application Gateway:
 
@@ -396,7 +396,7 @@ There are now some operations to be done on to proceed further:
 
 1)We need to create a new self-signed certificate to be associated to the Application Gateway's listener ("AzFW.example.com"). This certificate will be used between the client performing the request and the Application Gateway.
 
-2)We need to make sure that Application Gateway can trust the self-signed CA certificate used by Azure Firewall: to do this, we will add it as TrustedRootCert in the Application Gateway settings
+2)We need to make sure that Application Gateway can trust the self-signed CA certificate used by Azure Firewall for TLS inspection: to do this, we will add it as TrustedRootCert in the Application Gateway settings
 
 3)We need a new Firewall rule with TLSi + IDPS enabled to allow traffic from Application Gateway to backend VM
 
@@ -437,7 +437,7 @@ It's now time to proceed mapping the PFX certificate we just created to the list
 
 UPLOAD THE LISTENER CERTIFICATE TO APPGW:
 
-  az network application-gateway ssl-cert create -g azfirewallpremiumtest --gateway-name AppGW -n MySSLCert --cert-file C:\appgwcert.pfx --cert-password certpwd
+  az network application-gateway ssl-cert create -g azfirewallpremiumtest --gateway-name AppGW -n MySSLCert --cert-file C:\MylabRootCA.pfx --cert-password certpwd
 
 CREATE A NEW HTTPS LISTENER:
 
@@ -461,76 +461,32 @@ az network application-gateway root-cert create --cert-file <PathOfAzFWCert.CER>
 
 az network application-gateway http-settings update --gateway-name AppGW --name HTTPSsetting --resource-group azfirewallpremiumtest --root-certs AzFWCert --host-name MyprotectedApp.AzFWMH.net 
 
+
 ## Task 3
 
-We are now ready to proceed configuring our Web server for HTTPS connectivity.
+In this moment, the Application Gateway is programmed to redirect incoming requests matching its listener to the external website "example.com".
 
-The WEBSERVER VM has been already deployed with IIS services installed.
-IIS comes already with a Default Website created.
+The traffic will natively NOT transit through our Azure Firewall, unless we force it with a specific ad-hoc route in the UDR associated with Application Gateway subnet.
 
-What we need to do now is to bind our PFX certificate to it.
+Let's set up such route.
 
-Let's connect to WEBSERVER VM via Bastion native RDP client in order to be able to copy/paste our certificate.
+From a CLI session (better if running from inside VM1, in order to be sure to get the same IP that will be resolved by Application Gateway) let's resolve the public IP address of the site "example.com":
 
-From a terminal CLI session on your PC, run:
+*nslookup example.com*
 
-[Replace <SubscriptionID> with your subscription ID value]
+--> Take note of the resolved IP address
 
-az network bastion rdp --name "BastionHost" --resource-group "AzFirewallPremiumTest" --target-resource-id "/subscriptions/<SubscriptionID>/resourceGroups/AzFirewallPremiumTest/providers/Microsoft.Compute/virtualMachines/WEBSERVER"
+From a CLI (CLoudshell, or local) run:
 
-Complete login via native Windows RDP client using the following credentials:
+*az network route-table route create -g azfirewallpremiumtest --route-table-name APPGWUDR -n Route1 --next-hop-type VirtualAppliance --address-prefix <IP_resolved_for_Example_website>/32 --next-hop-ip-address 10.0.2.4*
 
-username      = "adminuser"
-password      = "AzFWPa$$w0rd"
+[Note1: Firewall internal IP is expected to be 10.0.2.4 as per design of the lab, but you can doublecheck that this is the case in your scenario]
 
-From the RDP session, let's copy/paste a copy of our PFX certificate we generated before (appgwcert.pfx) in the C:\ folder of WEBSERVER:
+[Note2: replace <IP_resolved_for_Example_website> with the IP you resolved in precedence]
 
-=Uploadcertonwebserver1=
+The UDR will now redirect any traffic for the public website "example.com" from Application Gateway through our Firewall for inspection.
 
-Double-click on the certificate to install it locally
-
-=InstallCertonIISserver1=
-
-=InstallCertonIISserver2=
-
-The certificate password we configured is "certpwd"
-
-=InstallCertonIISserver3=
-
-=InstallCertonIISserver4=
-
-=InstallCertonIISserver5=
-
-From Start menu, now search for IIS Manager and launch it.
-
-Expand the branches under WEBSERVER name in the left pane, and look up for "Default WebSite" under "Sites".
-If you want you can as well rename the Default Website with "MyprotectedApp.AzFWMH.net"
-
-Right-Click on Edit Bindings and select "Add"
-
-=EditBindings1=
-
-Configure the Binding settings this way:
-
-=EditBindings2=
-
-Type: HTTPS
-
-Port: 443 (all IP addresses)
-
-Host Name: MyprotectedApp.AzFWMH.net 
-
-SSL Certificate: MyprotectedApp.AzFWMH.net
-
-Restart the website:
-
-=RestartSite1=
-
-## Task 4
-
-In this moment, the traffic between our Application Gateway and our WEBSERVER VM is passing through the Azure Firewall, but it's not allowed by any firewall rule.
-
-We can proceed enabling such traffic with - for example - a new APPLICATION RULE allowing all the traffic toward our site's FQDN.
+Let's proceed creating an ALLOW rule for the traffic from the AppGW to our "backend"
 
 This rule will have the TLS-inspection enabled.
 
@@ -544,7 +500,7 @@ Name: AllowAppGW
 
 Source IP Addresses: 10.0.4.0/24
 
-Target FQDNs: MyprotectedApp.AzFWMH.net
+Target FQDNs: example.com
 
 TLS Inspection: enabled
 
@@ -552,30 +508,12 @@ Protocols: http, https
 
 =RuleToAllowAppGWtraffic1=
 
-After the rule is applied, come back to the Application Gateway section.
-Review "Backend Health" status:
+After the rule is applied, the traffic to example.com from Application Gateway will be filtered by Azure Firewall.
 
-=backendhealth1=
+Azure Firewall will inspect traffic, and if the request is allowed, it will forward the request to remote site.
 
-Is this expected?
+Since we're considering an ApplicationRule, please note that in any case the traffic from the AzFW will be SNATted toward destination.
 
-## Task 5
 
-In this moment, the Application Gateway is generating HTTPS requests from subnet 10.0.4.0/24 with destination 10.0.1.6, for the HOST named "MyprotectedApp.AzFWMH.net"
+## Task 4
 
-The Azure Firewall is intercepting these requests, and it's trying to resolve the same FQDN to validate that the destination IP 10.0.1.6 is effectively linked to "MyprotectedApp.AzFWMH.net".
-
-This name resolution is failing, because such FQDN is not mapped to any resolvable record.
-
-To fix this problem, we can create a Private DNS zone (AzFWMH.net) and link it to our VNET.
-In the zone we will create a record for "MyprotectedApp.AzFWMH.net" that will resolve to 10.0.1.6
-
-As soon as the Firewall can resolve the destination of the requests with the correspondent IP address, the flow is expected to be allowed by the Application rule we just configured.
-
-To create the Private DNS zone and relevant record, run:
-
-*az network private-dns zone create -g azfirewallpremiumtest -n AzFWMH.net*
-
-*az network private-dns record-set a add-record -g azfirewallpremiumtest -z AzFWMH.net -n MyprotectedApp -a 10.0.1.6*
-
-*az network private-dns link vnet create -g azfirewallpremiumtest -n Privatezonelink1 -z AzFWMH.net -v VNET1 -e False*

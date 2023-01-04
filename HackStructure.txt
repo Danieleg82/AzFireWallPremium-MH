@@ -74,16 +74,11 @@ Associate the cert to the listener
 Associate the selfsigned FW CA cert to Trusted Root certs in AppGW
 
 Task3:
-Configure backend IIS + certificate
-
-Task4:
+Configure the UDR to drive traffic for example.com to FW
 Create FW network rule witl TLSi enabled for traffic from AppGW to backend
 
-Task5:
-Check backend health status --> it's supposed to be unhealthy because the IDPS is supposed to block.
-This happens because the probe requests have a HOST HTTP header that the FW doesn't resolve with the backend IP.
-To solve this problem, we create a private zone
+Task4:
+Test solution from client:
 
-Task6:
-Probe should now be ok.
-We can test external connectivity (map host name in HOSTS file etc)
+First test with no Haxerman
+Second test with Haxerman
