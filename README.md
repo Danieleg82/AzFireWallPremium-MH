@@ -13,7 +13,9 @@ xxxxxxx
 
 ## TASK2
 
-After our environment is deployed, let's proceed enabling Diagnostic logging on the FW:
+After our environment is deployed, let's proceed enabling Diagnostic logging on the FW.
+
+If neended, create a LogAnalytics workspace where to host the FW logs.
 
 =enableDiagpic1=
 
@@ -517,3 +519,62 @@ Since we're considering an ApplicationRule, please note that in any case the tra
 
 ## Task 4
 
+The application is now finally protected by 2 different protection layers:
+
+- the layer 7 WAF protection offered by Application Gateway
+- the IDPS based protection offered by Azure Firewall Premium
+
+It's time to test such levels of protection.
+
+From your client machine (where we trusted the CA of the certificate currently mapped to Application Gateway's listener) let's proceed performing the following tests.
+
+It's important that you double-check that no NSG is present applied to the Application Gateway subnet interfering with your external client's connectivity.
+
+**In case of any NSG applied, remember to configure relevant Inbound ALLOW rules based on your client's source IP address.**
+
+We will use CURL for testing.
+
+[NOTE: CURL command is supposed to be embedded in Windows OS since Windows 10 build 17063. If missing, you can download CURL from any public repository, i.e. https://curl.se/windows/]
+
+FIRST TEST:
+
+[Replace <AppGWPublicIP> with the public IP of your Application Gateway's listener] -->
+
+curl -I -k https://example.com --resolve example.com:443:<AppGWPublicIP>
+
+What's the expected result, and what's the result you're getting?
+
+SECOND TEST:
+
+We will here inject in our request, as done previously, a malicious User-Agent ("HaxerMen").
+
+curl -I -A "HaxerMen" -k https://example.com --resolve example.com:443:<AppGWPublicIP>
+
+...what's the result?
+Are you getting any HTTP response code back from CURL?
+Who is blocking this request? The Firewall or the Application Gateway?
+
+THIRD TEST:
+
+curl -I -k "https://example.com/?b='><script>alert(1)</script>" --resolve example.com:443:<AppGWPublicIP>
+
+...what's the result?
+Is it expected?
+Who is blocking this request? The Firewall or the Application Gateway?
+
+## Task 5 (Optional)
+
+As optional task you can proceed enabling Diagnostic logging on the Application Gateway to review which kind of WAF rule is blocking the last request we generated.
+
+Follow the same procedure we used in the initial section "DEPLOYMENT AND PRELIMINARY CONFIGURATIONS" --> Task 2 to configuring the redirection of Application Gateway's logs in our LogAnalytics workspace
+
+=enableDiagonAppGW1=
+
+...then, underl Logs, use the following query to understand which WAF rules blocked our last connection attempt:
+
+AzureDiagnostics 
+| where ResourceProvider == "MICROSOFT.NETWORK" and Category == "ApplicationGatewayFirewallLog" and Resource == "APPGW"
+| project TimeGenerated, _ResourceId,requestUri_s,Message,clientIp_s,ruleId_s,details_message_s
+
+Which rules' list did you get?
+If this was a false-positive match, what could we do to make these requests pass throug Application Gateway?
