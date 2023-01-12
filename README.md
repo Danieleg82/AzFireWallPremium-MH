@@ -296,7 +296,8 @@ After having applied this, let's proceed enabling TLS inspection in the Applicat
 
 ![](pics/enableTLSinspectionOnappRule1.jpg)
 
-![](pics/enableTLSinspectionOnappRule2.jpg)
+<img src=pics/enableTLSinspectionOnappRule2.jpg width="700" height="900" align="center" />
+
 
 ## Task 4
 
@@ -432,7 +433,25 @@ The external website of our choice will "emulate" a web-server hosted in our VNE
 
 As first step let's proceed creating our Application Gateway:
 
-XXXXX terraform steps XXXXXXX
+Log back in into CLoud Shell
+
+-Change directory:
+
+```
+cd ./AzFirewallPremium-MH/Terraform/AppGW
+```
+
+-Initialize terraform and download the azurerm resource provider:
+
+```
+terraform init
+```
+
+-Now start the deployment (when prompted, confirm with yes to start the deployment):
+
+```
+terraform apply
+```
 
 After the deployment is completed, we will have the following situation:
 
@@ -440,11 +459,11 @@ After the deployment is completed, we will have the following situation:
 -A UDR will be applied to AppGW subnet, initially with no routes configured.
 -The Application Gateway will be initially preconfigured with a backend pool (configured with the FQDN of external website "example.com"), a dummy HTTP listener (initially configured on port 80/HTTP), and a custom probe
 
-There are now some operations to be done on to proceed further:
+There are now some operations to be done to proceed further:
 
 1)We need to create a new self-signed certificate to be associated to the Application Gateway's listener ("AzFW.example.com"). This certificate will be used between the client performing the request and the Application Gateway.
 
-2)We need to make sure that Application Gateway can trust the self-signed CA certificate used by Azure Firewall for TLS inspection: to do this, we will add it as TrustedRootCert in the Application Gateway settings
+2)We need to make sure that Application Gateway can trust the self-signed CA certificate used by Azure Firewall for TLS inspection: to do this, we will add it as **TrustedRootCert** in the Application Gateway settings
 
 3)We need a new Firewall rule with TLSi + IDPS enabled to allow traffic from Application Gateway to backend VM
 
@@ -454,28 +473,35 @@ Let's start by creating a new certificate to be associated to our published webs
 
 From your PC, start a Windows Powershell session as administrator, and run the following:
 
+```
 $rootcert = New-SelfSignedCertificate -certstorelocation cert:\localmachine\my -dnsname Azfw.example.com -KeyUsage CertSign
 Write-host "Certificate Thumbprint: $($rootcert.Thumbprint)"
+```
 
 Take note of the certificate's thumbprint in output:
 
-=CreateNewCert1=
+![](pics/CreateNewCert1.jpg)
 
 EXPORT AS .CER
 
+```
 Export-Certificate -Cert $rootcert -FilePath C:\MylabRootCA.cer
+```
 
 IMPORT LOCALLY TO TRUST THE CERTIFICATE [*Note: you need to run the powershell session as admin]:
 
+```
 Import-Certificate -FilePath C:\MylabRootCA.cer -CertStoreLocation Cert:\LocalMachine\Root
-
+```
 
 Proceed with the following to export such certificate in PFX format in the path you prefer:
 
-[Note: replace "CertThumbprint" with the thumbprint value you got from previous step.]
+[Note: replace *"CertThumbprint"* with the thumbprint value you got from previous step.]
 
+```
 $pwd = ConvertTo-SecureString -String certpwd -Force -AsPlainText
 Export-PfxCertificate -cert cert:\localMachine\my\<CertThumbprint> -FilePath c:\MylabRootCA.pfx -Password $pwd
+```
 
 A PFX file "MylabRootCA.pfx" is now available for you to be associated with the Application Gateway's listener.
 
@@ -483,20 +509,28 @@ A PFX file "MylabRootCA.pfx" is now available for you to be associated with the 
 
 It's now time to proceed mapping the PFX certificate we just created to the listener of our Application Gateway, and at the same time configuring the Azure Firewall's certificate as TrustedRootCertificate in the properties of the HTTPsetting we will use to expose our website in Application Gateway.
 
-UPLOAD THE LISTENER CERTIFICATE TO APPGW:
+You can proceed with the following cmdlets directly from your PC (if you have Azure CLI modules up to date in your system).
+If you want to use CLoud Shell, you would need to upload the PFX/CER certificates to your local CloudShell session.
 
-  az network application-gateway ssl-cert create -g azfirewallpremiumtest --gateway-name AppGW -n MySSLCert --cert-file C:\MylabRootCA.pfx --cert-password certpwd
+**UPLOAD THE LISTENER CERTIFICATE TO APPGW:**
 
-CREATE A NEW HTTPS LISTENER:
+```
+az network application-gateway ssl-cert create -g azfirewallpremiumtest --gateway-name AppGW -n MySSLCert --cert-file C:\MylabRootCA.pfx --cert-password certpwd
+```
 
+**CREATE A NEW HTTPS LISTENER:**
+```
 az network application-gateway frontend-port create -g azfirewallpremiumtest --gateway-name AppGW -n HTTPSport --port 443
 
 az network application-gateway listener create -g azfirewallpremiumtest --gateway-name AppGW --frontend-port HTTPSport -n HTTPSListener --frontend-ip my-gateway-frontend-ip-configuration --ssl-cert MySSLCert 
+```
 
-CONFIGURE A ROUTING RULE:
+**CONFIGURE A ROUTING RULE:**
 
+```
 az network application-gateway rule create -g azfirewallpremiumtest --gateway-name AppGW -n HTTPSrule --http-listener HTTPSListener --rule-type Basic --address-pool BackendPool1 --http-settings HTTPSsetting --priority 10005
-	
+```
+
 It's now time to configure the Azure Firewall certificate used for TLS-inspection as TrustedRoot certificate on our Application Gateway.
 
 Let's locate on our PC the CA certificate we generated from Azure Firewall in Challenge2/Task2, and rename it as .CER
@@ -505,10 +539,11 @@ Let's upload it and configure it on Application Gateway and update the relevant 
 
 [Replace <PathOfAzFWCert.CER> with the local path of the Azure Firewall .CER certificate on your PC]
 
+```
 az network application-gateway root-cert create --cert-file <PathOfAzFWCert.CER> --gateway-name AppGW --name AzFWCert --resource-group azfirewallpremiumtest
 
 az network application-gateway http-settings update --gateway-name AppGW --name HTTPSsetting --resource-group azfirewallpremiumtest --root-certs AzFWCert --host-name MyprotectedApp.AzFWMH.net 
-
+```
 
 ## Task 3
 
@@ -518,19 +553,22 @@ The traffic will natively NOT transit through our Azure Firewall, unless we forc
 
 Let's set up such route.
 
-From a CLI session (better if running from inside VM1, in order to be sure to get the same IP that will be resolved by Application Gateway) let's resolve the public IP address of the site "example.com":
+From a CMD terminal session (better if running from inside VM1, in order to be sure to get the same IP that will be resolved by Application Gateway) let's resolve the public IP address of the site "example.com":
 
-*nslookup example.com*
+```
+nslookup example.com
+```
 
 --> Take note of the resolved IP address
 
-From a CLI (CLoudshell, or local) run:
+From Azure CLI (CLoudshell, or local on your PC) run:
 
-*az network route-table route create -g azfirewallpremiumtest --route-table-name APPGWUDR -n Route1 --next-hop-type VirtualAppliance --address-prefix <IP_resolved_for_Example_website>/32 --next-hop-ip-address 10.0.2.4*
+```
+az network route-table route create -g azfirewallpremiumtest --route-table-name APPGWUDR -n Route1 --next-hop-type VirtualAppliance --address-prefix <IP_resolved_for_Example_website>/32 --next-hop-ip-address 10.0.2.4
+```
 
-[Note1: Firewall internal IP is expected to be 10.0.2.4 as per design of the lab, but you can doublecheck that this is the case in your scenario]
-
-[Note2: replace <IP_resolved_for_Example_website> with the IP you resolved in precedence]
+[**Note1:** Firewall internal IP is expected to be 10.0.2.4 as per design of the lab, but you can doublecheck that this is the case in your scenario]
+[**Note2:** replace *<IP_resolved_for_Example_website>* with the IP you resolved in precedence]
 
 The UDR will now redirect any traffic for the public website "example.com" from Application Gateway through our Firewall for inspection.
 
@@ -542,21 +580,16 @@ Let's go to AzFWPolicy --> Application Rules --> Add rule
 
 Let's configure a new rule with the following settings:
 
-Rule Collection: RuleCollection1
+- Rule Collection: RuleCollection1
+- Name: AllowAppGW
+- Source IP Addresses: 10.0.4.0/24
+- Target FQDNs: example.com
+- TLS Inspection: enabled
+- Protocols: http, https
 
-Name: AllowAppGW
+![](pics/RuleToAllowAppGWtraffic1.jpg)
 
-Source IP Addresses: 10.0.4.0/24
-
-Target FQDNs: example.com
-
-TLS Inspection: enabled
-
-Protocols: http, https
-
-=RuleToAllowAppGWtraffic1=
-
-After the rule is applied, the traffic to example.com from Application Gateway will be filtered by Azure Firewall.
+After the rule is applied, the traffic to *example.com* from Application Gateway will be filtered by Azure Firewall.
 
 Azure Firewall will inspect traffic, and if the request is allowed, it will forward the request to remote site.
 
@@ -580,29 +613,35 @@ It's important that you double-check that no NSG is present applied to the Appli
 
 We will use CURL for testing.
 
-[NOTE: CURL command is supposed to be embedded in Windows OS since Windows 10 build 17063. If missing, you can download CURL from any public repository, i.e. https://curl.se/windows/]
+[**NOTE:** CURL command is supposed to be embedded in Windows OS since Windows 10 build 17063. If missing, you can download CURL from any public repository, i.e. https://curl.se/windows/]
 
-FIRST TEST:
+**FIRST TEST:**
 
-[Replace <AppGWPublicIP> with the public IP of your Application Gateway's listener] -->
+[Replace *<AppGWPublicIP>* with the public IP of your Application Gateway's listener] -->
 
+```
 curl -I -k https://example.com --resolve example.com:443:<AppGWPublicIP>
+```
 
 What's the expected result, and what's the result you're getting?
 
-SECOND TEST:
+**SECOND TEST:**
 
-We will here inject in our request, as done previously, a malicious User-Agent ("HaxerMen").
+We will here inject in our request, as done previously, a malicious *User-Agent ("HaxerMen")*.
 
+```
 curl -I -A "HaxerMen" -k https://example.com --resolve example.com:443:<AppGWPublicIP>
+```
 
 ...what's the result?
 Are you getting any HTTP response code back from CURL?
 Who is blocking this request? The Firewall or the Application Gateway?
 
-THIRD TEST:
+**THIRD TEST:**
 
+```
 curl -I -k "https://example.com/?b='><script>alert(1)</script>" --resolve example.com:443:<AppGWPublicIP>
+```
 
 ...what's the result?
 Is it expected?
@@ -614,13 +653,15 @@ As optional task you can proceed enabling Diagnostic logging on the Application 
 
 Follow the same procedure we used in the initial section "DEPLOYMENT AND PRELIMINARY CONFIGURATIONS" --> Task 2 to configuring the redirection of Application Gateway's logs in our LogAnalytics workspace
 
-=enableDiagonAppGW1=
+![](pics/enableDiagonAppGW1.jpg)
 
-...then, underl Logs, use the following query to understand which WAF rules blocked our last connection attempt:
+...then, under "Logs", use the following query to understand which WAF rules blocked our last connection attempt:
 
+```
 AzureDiagnostics 
 | where ResourceProvider == "MICROSOFT.NETWORK" and Category == "ApplicationGatewayFirewallLog" and Resource == "APPGW"
 | project TimeGenerated, _ResourceId,requestUri_s,Message,clientIp_s,ruleId_s,details_message_s
+```
 
 Which rules' list did you get?
 If this was a false-positive match, what could we do to make these requests pass throug Application Gateway?
