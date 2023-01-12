@@ -11,13 +11,20 @@
 
 [CHALLENGE 3 (Optional): Block specific Web Categories](#challenge-3-optional-block-specific-web-categories)
 
-[CHALLENGE 4: Application Gateway & Azure Firewall chain with TLS inspection](#challenge-4-application-gateway--azure-firewall-chain-with-tls-inspection)
+[CHALLENGE 4 (Optional): Block specific URL paths]
+
+[CHALLENGE 5: Application Gateway & Azure Firewall chain with TLS inspection](#challenge-4-application-gateway--azure-firewall-chain-with-tls-inspection)
 
 ## INTRO
 
-In this microHack we will test the functionalities introduced by Azure Firewall Premium SKU
+In this microHack we will test some of the most interesting functionalities introduced by Azure Firewall Premium SKU
+
+![](pics/AzFWPremiumfeatures.jpg)
 
 The environment is composed by a simple Windows VM with internet traffic protected by Azure Firewall Premium.
+
+In the last challenge we will introduce an Application Gateway with WAF protection, to simulate the commonly used chained topology (AppGW + FW) for exposing applications to the Internet leveraging both WAF + IDPS protection layers.
+
 All is deployed in the same VNET with no particular routing configurations.
 
 
