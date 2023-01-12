@@ -9,7 +9,39 @@ All is deployed in the same VNET with no particular routing configurations.
 
 Let's start with the deployment of the environment:
 
-xxxxxxx
+-Log in to Azure Cloud Shell at https://shell.azure.com/ and select Bash
+
+-If necessary select your target subscription:
+
+```
+azure account set -s {Subscription Id}
+```
+
+-Clone the GitHub repository:
+
+```
+git clone https://github.com/Danieleg82/AzFirewallPremium-MH
+```
+
+-Change directory:
+
+```
+cd ./AzFirewallPremium-MH/Terraform/Main
+```
+
+-Initialize terraform and download the azurerm resource provider:
+
+```
+terraform init
+```
+
+-Now start the deployment (when prompted, confirm with yes to start the deployment):
+
+```
+terraform apply
+```
+
+
 
 ## TASK2
 
