@@ -1,7 +1,26 @@
+
+## TABLE OF CONTENT
+
+[Intro](#intro)
+
+[Deployment and preliminary configurations](#deployment-and-preliminary-configurations)
+
+[Challenge 1: IDPS for unencrypted traffic](#challenge1--idps-for-unencrypted-traffic)
+
+[CHALLENGE 2: TLS Inspection and IDPS on encrypted traffic](#challenge-2-tls-inspection-and-idps-on-encrypted-traffic)
+
+[CHALLENGE 3 (Optional): Block specific Web Categories](#challenge-3-optional-block-specific-web-categories)
+
+[CHALLENGE 4: Application Gateway & Azure Firewall chain with TLS inspection](#challenge-4-application-gateway--azure-firewall-chain-with-tls-inspection)
+
+## INTRO
+
 In this microHack we will test the functionalities introduced by Azure Firewall Premium SKU
 
 The environment is composed by a simple Windows VM with internet traffic protected by Azure Firewall Premium.
 All is deployed in the same VNET with no particular routing configurations.
+
+
 
 # DEPLOYMENT AND PRELIMINARY CONFIGURATIONS
 
