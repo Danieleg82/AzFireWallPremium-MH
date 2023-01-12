@@ -5,7 +5,7 @@
 
 [Deployment and preliminary configurations](#deployment-and-preliminary-configurations)
 
-[Challenge 1: IDPS for unencrypted traffic](#challenge1--idps-for-unencrypted-traffic)
+[CHALLENGE 1: IDPS for unencrypted traffic](#challenge1--idps-for-unencrypted-traffic)
 
 [CHALLENGE 2: TLS Inspection and IDPS on encrypted traffic](#challenge-2-tls-inspection-and-idps-on-encrypted-traffic)
 
