@@ -427,7 +427,61 @@ Note the presence of matches for the requests we generated from VM1:
 
 ![](pics/CheckapplruleLogsforGambling2.jpg)
 
-# CHALLENGE 4: Application Gateway & Azure Firewall chain with TLS inspection
+# CHALLENGE 4 (Optional): Block specific URL paths
+
+We can now proceed testing the URL Filtering functionality.
+
+In this test we will allow connectivity exclusively to a specific sub-path of website "www.example.com"
+
+For example, we will allow traffic to "www.example.com/Path1" only, thus implicitely blocking traffic to any other website or other paths of the same website (i.e. "www.example.com/Path2)
+
+To do this, let's proceed selecting our Firewall Policy and let's modify the Collection Rule "RuleCollection1" we created in Challenge 1.
+
+Let's configure these settings for Rule1 inside RuleCollection1:
+
+- Collection Name: RuleCollection1
+- Type: Application
+- Priority: 110
+- Action: ALLOW
+- Rule Name: Rule1
+- Sourcetype = IP address
+- Source = 10.0.1.0/24 
+- Protocols: http:80,https
+- TLS Inspection: ENABLED
+- **Destinationtype = URL**
+- **Destination: www.example.com/Path1**
+
+![](pics/ConfigureURLPathrule.jpg)
+
+TLS Inspection is enabled, so we will be able to test with encrypted traffic.
+
+Let's connect to VM1 and launch:
+
+```
+curl -I -k "https://www.example.com/Path1"
+```
+
+What's the result?
+Is the Firewall blocking such request?
+
+Let's now launch:
+
+```
+curl -I -k "https://www.example.com/Path2"
+```
+
+What's the status code you're receiving?
+Is this blocked by FIrewall?
+
+Repeat the test with other remote sites, i.e.
+
+```
+curl -I -k "https://www.bing.com"
+```
+
+The CURL result is different in this case, why?
+
+# CHALLENGE 5: Application Gateway & Azure Firewall chain with TLS inspection
 
 In this final challenge we will test a very common scenario: the chaining between Azure Firewall and Application Gateway for the protection of Internet-inbound encrypted traffic.
 
