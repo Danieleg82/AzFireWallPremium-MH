@@ -66,7 +66,7 @@ terraform init
 ```
 terraform apply
 ```
-At the end of deployment phase, you will see the following resources under resource group named **AzFirewallPremimTest**:
+At the end of deployment phase, you will see the following resources under resource group named **AzFirewallPremiumTest**:
 
 - A VNET (VNET1) hosting:
 - A client VM named VM1 (credentials --> Username: adminuser / Pwd: AzFWPa$$w0rd) 
