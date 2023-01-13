@@ -11,9 +11,9 @@
 
 [CHALLENGE 3 (Optional): Block specific Web Categories](#challenge-3-optional-block-specific-web-categories)
 
-[CHALLENGE 4 (Optional): Block specific URL paths]
+[CHALLENGE 4 (Optional): Block specific URL paths](#challenge-4-optional-block-specific-url-paths)
 
-[CHALLENGE 5: Application Gateway & Azure Firewall chain with TLS inspection](#challenge-4-application-gateway--azure-firewall-chain-with-tls-inspection)
+[CHALLENGE 5: Application Gateway & Azure Firewall chain with TLS inspection](#challenge-5-application-gateway--azure-firewall-chain-with-tls-inspection)
 
 ## INTRO
 
