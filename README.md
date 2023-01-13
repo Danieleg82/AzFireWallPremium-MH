@@ -556,6 +556,8 @@ There are now some operations to be done to proceed further:
 
 Let's start by creating a new certificate to be associated to our published website.
 
+The public name of our exposed website will be "Azfw.example.com", and our Application Gateway will perform (through Azure Firewall) the redirection to the real website.
+
 From your PC, start a Windows Powershell session as administrator, and run the following:
 
 ```
