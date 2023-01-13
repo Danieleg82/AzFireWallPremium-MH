@@ -589,10 +589,11 @@ Export-PfxCertificate -cert cert:\localMachine\my\<CertThumbprint> -FilePath c:\
 ```
 
 A PFX file "MylabRootCA.pfx" is now available for you to be associated with the Application Gateway's listener.
+It's password will be "certpwd".
 
 ## Task 2
 
-It's now time to proceed mapping the PFX certificate we just created to the listener of our Application Gateway, and at the same time configuring the Azure Firewall's certificate as TrustedRootCertificate in the properties of the HTTPsetting we will use to expose our website in Application Gateway.
+It's now time to proceed mapping the PFX certificate we just created to the listener of our Application Gateway, and at the same time configuring the Azure Firewall's certificate as *TrustedRootCertificate* in the properties of the *HTTPsetting* we will use to expose our website in Application Gateway.
 
 You can proceed with the following cmdlets directly from your PC (if you have Azure CLI modules up to date in your system).
 If you want to use CLoud Shell, you would need to upload the PFX/CER certificates to your local CloudShell session.
@@ -616,9 +617,9 @@ az network application-gateway listener create -g azfirewallpremiumtest --gatewa
 az network application-gateway rule create -g azfirewallpremiumtest --gateway-name AppGW -n HTTPSrule --http-listener HTTPSListener --rule-type Basic --address-pool BackendPool1 --http-settings HTTPSsetting --priority 10005
 ```
 
-It's now time to configure the Azure Firewall certificate used for TLS-inspection as TrustedRoot certificate on our Application Gateway.
+It's now time to configure the Azure Firewall certificate used for TLS-inspection as *TrustedRoot certificate* on our Application Gateway.
 
-Let's locate on our PC the CA certificate we generated from Azure Firewall in Challenge2/Task2, and rename it as .CER
+Let's locate on our PC the CA certificate we generated from Azure Firewall in Challenge2/Task2, and **rename it as .CER**
 
 Let's upload it and configure it on Application Gateway and update the relevant HTTPsetting: 
 
@@ -627,18 +628,18 @@ Let's upload it and configure it on Application Gateway and update the relevant 
 ```
 az network application-gateway root-cert create --cert-file <PathOfAzFWCert.CER> --gateway-name AppGW --name AzFWCert --resource-group azfirewallpremiumtest
 
-az network application-gateway http-settings update --gateway-name AppGW --name HTTPSsetting --resource-group azfirewallpremiumtest --root-certs AzFWCert --host-name MyprotectedApp.AzFWMH.net 
+az network application-gateway http-settings update --gateway-name AppGW --name HTTPSsetting --resource-group azfirewallpremiumtest --root-certs AzFWCert
 ```
 
 ## Task 3
 
-In this moment, the Application Gateway is programmed to redirect incoming requests matching its listener to the external website "example.com".
+In this moment, the Application Gateway is programmed to redirect incoming requests matching its listener to the external website *"example.com"*.
 
 The traffic will natively NOT transit through our Azure Firewall, unless we force it with a specific ad-hoc route in the UDR associated with Application Gateway subnet.
 
 Let's set up such route.
 
-From a CMD terminal session (better if running from inside VM1, in order to be sure to get the same IP that will be resolved by Application Gateway) let's resolve the public IP address of the site "example.com":
+From a CMD terminal session (better if running from inside VM1, in order to be sure to get the same IP that will be resolved by Application Gateway) let's resolve the public IP address of the site *"example.com"*:
 
 ```
 nslookup example.com
@@ -653,6 +654,7 @@ az network route-table route create -g azfirewallpremiumtest --route-table-name 
 ```
 
 [**Note1:** Firewall internal IP is expected to be 10.0.2.4 as per design of the lab, but you can doublecheck that this is the case in your scenario]
+
 [**Note2:** replace *<IP_resolved_for_Example_website>* with the IP you resolved in precedence]
 
 The UDR will now redirect any traffic for the public website "example.com" from Application Gateway through our Firewall for inspection.
@@ -705,7 +707,7 @@ We will use CURL for testing.
 [Replace *<AppGWPublicIP>* with the public IP of your Application Gateway's listener] -->
 
 ```
-curl -I -k https://example.com --resolve example.com:443:<AppGWPublicIP>
+curl -I -k https://Azfw.example.com--resolve Azfw.example.com:443:<AppGWPublicIP>
 ```
 
 What's the expected result, and what's the result you're getting?
@@ -715,7 +717,7 @@ What's the expected result, and what's the result you're getting?
 We will here inject in our request, as done previously, a malicious *User-Agent ("HaxerMen")*.
 
 ```
-curl -I -A "HaxerMen" -k https://example.com --resolve example.com:443:<AppGWPublicIP>
+curl -I -A "HaxerMen" -k https://Azfw.example.com --resolve Azfw.example.com:443:<AppGWPublicIP>
 ```
 
 ...what's the result?
@@ -725,7 +727,7 @@ Who is blocking this request? The Firewall or the Application Gateway?
 **THIRD TEST:**
 
 ```
-curl -I -k "https://example.com/?b='><script>alert(1)</script>" --resolve example.com:443:<AppGWPublicIP>
+curl -I -k "https://Azfw.example.com/?b='><script>alert(1)</script>" --resolve Azfw.example.com:443:<AppGWPublicIP>
 ```
 
 ...what's the result?
