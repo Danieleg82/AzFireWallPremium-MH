@@ -90,7 +90,9 @@ If neended, create a LogAnalytics workspace where to host the FW logs.
 
 ## TASK1
 
-We will now proceed creating a basic outbound ApplicationRule which will initially allow any kind of outbound internet connection from our internal subnet.
+In this first challenge, we'll test basic IDPS functionalities on pure HTTP unencrypted traffic.
+
+Let's proceed creating a basic outbound ApplicationRule which will initially allow any kind of outbound internet connection from our internal subnet.
 
 Let's find our FW Policy from portal and let's select "Add a rule collection" under the "Application rules" section
 
