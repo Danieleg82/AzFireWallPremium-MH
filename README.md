@@ -94,7 +94,7 @@ In this first challenge, we'll test basic IDPS functionalities on pure HTTP unen
 
 Let's proceed creating a basic outbound ApplicationRule which will initially allow any kind of outbound internet connection from our internal subnet.
 
-Let's find our FW Policy from portal and let's select "Add a rule collection" under the "Application rules" section
+Let's find our FW Policy from portal and let's select *"Add a rule collection"* under the *"Application rules"* section
 
 ![](pics/ApplicationRulecreation1.jpg)
 
@@ -119,7 +119,7 @@ Click ADD to apply the change to the policy
 ## TASK2
 
 Let's now go ahead enabling IDPS on our FW.
-This will be set in Alert & Deny mode.
+This will be set in *Alert & Deny mode*.
 
 Since TLS Inspection is initially disabled, we will see how protection works exclusively for unencrypted (HTTP) traffic.
 
@@ -143,7 +143,7 @@ curl -I "http://www.bing.com"
 
 Are you able to access it?
 
-Let's now emulate an attempt of connection to our HTTP website using a malicious user-agent included in the GET request we send out to the destination server:
+Let's now emulate an attempt of connection to our HTTP website using a malicious *user-agent* included in the GET request we send out to the destination server:
 
 ```
 curl -I -A "HaxerMen" "http://www.bing.com"
@@ -154,7 +154,7 @@ Is that what you would expect?
 
 Finally, repeat the test with the HTTPS version of same website:
 
-With standard User-agents:
+With standard *User-agents*:
 
 ```
 curl -I "https://www.bing.com"
@@ -172,7 +172,7 @@ Did you expect such result?
 
 We can now review the Azure Firewall logs to show find out the requests blocked by IDS.
 
-Wait for some minutes after having performed the above tests, then run a query on "Azure Firewall Log" logs and review the filtered requests:
+Wait for some minutes after having performed the above tests, then run a query on *"Azure Firewall Log"* logs and review the filtered requests:
 
 ![](pics/ReviewAzFWLogData1.jpg)
 
@@ -247,11 +247,11 @@ Download a .CER copy of the certificate:
 
 **Let's rename this file in .CRT for the import on Linux VM.**
 
-To import our .CRT file on a Linux VM, we can leverage the Bastion Standard Tunneling feature.
+To import our .CRT file on a Linux VM, we can leverage the *Bastion Standard Tunneling* feature.
 
 Select your Bastion Host in the portal and review its properties.
 
-In particular, make sure that SKU is Standard and that NativeClientSupport option is enabled. If not, proceed enabling it
+In particular, make sure that SKU is Standard and that *NativeClientSupport* option is enabled. If not, proceed enabling it
 
 ![](pics/Bastionreview1.jpg)
 
@@ -269,7 +269,7 @@ chmod 777 certificates
 
 We can now proceed creating a Bastion Tunnel to upload the certificates.
 
-From a bash terminal run the following, making sure to replace the placeholders for SubscriptionID and VMResourceID with your environment's values.
+From a bash terminal run the following, making sure to replace the placeholders for *SubscriptionID* and *VMResourceID* with your environment's values.
 
 ```
 az login
@@ -363,7 +363,7 @@ Are we obtaining the expected result here?
 
 ## Task 1
 
-After having tested IDPS and TLSInspection, we will hear demonstrate the Azure Firewall's Web categorization feature, and how it can be used to block connection attempts to external websites you wanted to block basing on your security policies.
+After having tested IDPS and TLSInspection, we will hear demonstrate the Azure Firewall's *Web categorization* feature, and how it can be used to block connection attempts to external websites you wanted to block basing on your security policies.
 
 Here we will start by blocking any request toward gambling websites.
 
@@ -431,11 +431,12 @@ Note the presence of matches for the requests we generated from VM1:
 
 # CHALLENGE 4 (Optional): Block specific URL paths
 
-We can now proceed testing the URL Filtering functionality.
+We can now proceed testing the *URL Filtering* functionality.
 
 In this test we will allow connectivity exclusively to a specific sub-path of website "www.example.com"
 
-For example, we will allow traffic to "www.example.com/Path1" only, thus implicitely blocking traffic to any other website or other paths of the same website (i.e. "www.example.com/Path2)
+For example, we will allow traffic to "www.example.com/Path1" only, thus implicitely blocking traffic to any other website or other paths of the same website (i.e. "www.example.com/Path2).
+The effective existence of these sub-paths is not fundamental for the scope of the excercise.
 
 To do this, let's proceed selecting our Firewall Policy and let's modify the Collection Rule "RuleCollection1" we created in Challenge 1.
 
@@ -500,7 +501,9 @@ https://learn.microsoft.com/en-us/azure/architecture/example-scenario/gateway/fi
 With a similar scenario, the exposed web application can leverage protection from 2 sources:
 
 1)Application Gateway's WAF (L7 protection)
+
 and/or
+
 2)Azure Firewall's IDPS
 
 All the benefits of a similar architecture are well described in the above article, and as well in the following:
@@ -537,9 +540,9 @@ terraform apply
 
 After the deployment is completed, we will have the following situation:
 
--A WAF_V2 Application Gateway is deployed in its own /24 dedicated subnet, in the same VNET as VM1
--A UDR will be applied to AppGW subnet, initially with no routes configured.
--The Application Gateway will be initially preconfigured with a backend pool (configured with the FQDN of external website "example.com"), a dummy HTTP listener (initially configured on port 80/HTTP), and a custom probe
+- A *WAF_V2* Application Gateway is deployed in its own /24 dedicated subnet, in the same VNET as VM1
+- A UDR will be applied to AppGW subnet, initially with no routes configured.
+- The Application Gateway will be initially preconfigured with a backend pool (configured with the FQDN of external website "example.com"), a dummy HTTP listener (initially configured on port 80/HTTP), and a custom probe
 
 There are now some operations to be done to proceed further:
 
