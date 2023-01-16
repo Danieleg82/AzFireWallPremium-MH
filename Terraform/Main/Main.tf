@@ -80,12 +80,12 @@ resource "azurerm_route_table" "VMUDR" {
     address_prefix = "0.0.0.0/0"
     next_hop_type  = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.AzFW.ip_configuration[0].private_ip_address
-
+  }
     route {
     name           = "route2"
     address_prefix = "${var.AppGWSubnetRange}"
     next_hop_type  = "VirtualAppliance"
-    next_hop_in_ip_address = data.azurerm_firewall.AzFW.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = azurerm_firewall.AzFW.ip_configuration[0].private_ip_address
 
   }
 }
