@@ -40,7 +40,7 @@ Let's start with the deployment of the environment:
 -If necessary select your target subscription:
 
 ```
-azure account set -s {Subscription Id}
+az account set -s {Subscription Id}
 ```
 
 -Clone the GitHub repository:
