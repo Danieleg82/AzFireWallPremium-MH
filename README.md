@@ -219,6 +219,21 @@ From Azure portal, let's locate our FW policy and let's enable TLS inspection le
 
 ![](pics/EnableTLSInspection1.jpg)
 
+```
+!!NOTE: At present day, a known issue in Azure portal could generate an anomalous behavior with the Key-Vault list box in the UI stuck in LOADING.
+If you had this issue please use this workaround:
+
+-Select DISABLED radio button
+-Click SAVE
+
+Self-enrolled certificate is supposed to start deploying, you can then select again the ENABLED radio button.
+
+If needed, repeat the procedure DISABLED + SAVE multiple times.
+
+THe issue is currently under repair phase.
+
+```
+
 After you click SAVE, TLS inspection will be enabled on your Firewall, and a new KeyVault containing a self-signed CA certificate will be created in your subscription.
 
 ## Task2
@@ -264,7 +279,7 @@ sudo mkdir certificates
 Let's extend access privileges to such folder:
 
 ```
-chmod 777 certificates
+sudo chmod 777 certificates
 ```
 
 We can now proceed creating a Bastion Tunnel to upload the certificates.
