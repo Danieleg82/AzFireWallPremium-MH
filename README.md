@@ -270,16 +270,10 @@ In particular, make sure that SKU is Standard and that *NativeClientSupport* opt
 
 ![](pics/Bastionreview1.jpg)
 
-Now, let's access VM1 via Bastion and create a a folder for the certificate to be imported:
+Now, let's access VM1 via Bastion and let's grant appropriate permissions on home folder for being able to import our certificate:
 
 ```
-sudo mkdir certificates
-```
-
-Let's extend access privileges to such folder:
-
-```
-sudo chmod 777 certificates
+sudo chmod 777 /
 ```
 
 We can now proceed creating a Bastion Tunnel to upload the certificates.
@@ -297,12 +291,12 @@ az network bastion tunnel --name "BastionHost" --resource-group "AzFirewallPremi
 
 ![](pics/BastionTunnelUP1.jpg)
 
-Now open a new command prompt, and proceed uploading the .CER file you downloaded previously to our VM1:
+Now open a new command prompt, and proceed uploading the .CRT file you downloaded previously to our VM1:
 
 (replace the source field *"local machine file path"* with the path where you downloaded the certificate)
 
 ```
-scp -P 5000 < local machine file path > adminuser@127.0.0.1:/certificates
+scp -P 5000 < local machine file path > adminuser@127.0.0.1:/
 ```
 
 Note: you will be asked to insert your adminuser's password to completed the operation
@@ -314,7 +308,7 @@ Let's proceed creating the trust for such certificate:
 (replace appropriate fields with real file name)
 
 ```
-sudo cp /certificates/fw-cert-xxxx.crt /usr/local/share/ca-certificates/fw-cert-xxxx.crt
+sudo cp /fw-cert-xxxx.crt /usr/local/share/ca-certificates/fw-cert-xxxx.crt
 ```
 
 Update the CA store: 
