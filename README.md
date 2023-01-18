@@ -78,7 +78,7 @@ At the end of deployment phase, you will see the following resources under resou
 
 After our environment is deployed, let's proceed as first step with enabling Diagnostic logging on the FW.
 
-If neended, create a LogAnalytics workspace where to host the FW logs.
+If needed, create a LogAnalytics workspace where to host the FW logs.
 
 ![](pics/EnableDiagnostic1.jpg)
 
@@ -170,7 +170,7 @@ Did you expect such result?
 
 ## TASK4
 
-We can now review the Azure Firewall logs to show find out the requests blocked by IDS.
+We can now review the Azure Firewall logs to find out the requests blocked by IDS.
 
 Wait for some minutes after having performed the above tests, then run a query on *"Azure Firewall Log"* logs and review the filtered requests:
 
