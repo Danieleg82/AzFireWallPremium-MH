@@ -718,7 +718,7 @@ We will use CURL for testing.
 [Replace *<AppGWPublicIP>* with the public IP of your Application Gateway's listener] -->
 
 ```
-curl -I -k https://Azfw.example.com--resolve Azfw.example.com:443:<AppGWPublicIP>
+curl -I -k https://Azfw.example.com --resolve Azfw.example.com:443:<AppGWPublicIP>
 ```
 
 What's the expected result, and what's the result you're getting?
