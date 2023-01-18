@@ -619,7 +619,7 @@ az network application-gateway ssl-cert create -g azfirewallpremiumtest --gatewa
 ```
 az network application-gateway frontend-port create -g azfirewallpremiumtest --gateway-name AppGW -n HTTPSport --port 443
 
-az network application-gateway listener create -g azfirewallpremiumtest --gateway-name AppGW --frontend-port HTTPSport -n HTTPSListener --frontend-ip my-gateway-frontend-ip-configuration --ssl-cert MySSLCert 
+az network application-gateway http-listener create -g azfirewallpremiumtest --gateway-name AppGW --frontend-port HTTPSport -n HTTPSListener --frontend-ip my-gateway-frontend-ip-configuration --ssl-cert MySSLCert 
 ```
 
 **CONFIGURE A ROUTING RULE:**
