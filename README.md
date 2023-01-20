@@ -15,6 +15,8 @@
 
 [CHALLENGE 5: Application Gateway & Azure Firewall chain with TLS inspection](#challenge-5-application-gateway--azure-firewall-chain-with-tls-inspection)
 
+[Close out](#close-out)
+
 ## INTRO
 
 In this microHack we will test some of the most interesting functionalities introduced by Azure Firewall Premium SKU
@@ -763,3 +765,11 @@ AzureDiagnostics
 
 Which rules' list did you get?
 If this was a false-positive match, what could we do to make these requests pass throug Application Gateway?
+
+# Close out
+
+Hope this lab could have represented a good introduction to the main new features composing the Azure Firewall Premium SKU.
+
+A special THANK YOU to my friend and colleague [Cynthia](https://github.com/cynthiatreger) for having been super helpful in beta-testing this :)
+
+Enjoy!!
