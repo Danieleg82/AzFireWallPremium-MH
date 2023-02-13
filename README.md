@@ -330,8 +330,6 @@ As first step, let's re-enable the DENY action for IDPS rule with signature 2032
 
 ![](pics/ReconfigureIDPSrule1.jpg)
 
-![](pics/ReconfigureIDPSrule1.jpg)
-
 After having applied this, let's proceed enabling TLS inspection in the Application Rule we configured to ALLOW outbound traffic from our client VM:
 
 ![](pics/enableTLSinspectionOnappRule1.jpg)
